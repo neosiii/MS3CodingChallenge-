@@ -70,26 +70,36 @@ public class csvparser {
 	private static String[] fixParse(String[] input) {
 		String toResplit = "";
 		int index = 0;
+		System.out.println(input[4]);
+		System.out.println(input[5]);
 		while(index < input.length) {
 			if(index != 4) {
-				toResplit += input[index] + " ";
+				toResplit += input[index] + "`";
+				index++;
 			}else {
 				//this is to fix column e where spliting by command messes the program up.
-				toResplit += input[index]+","+input[index+1]+" ";
+				toResplit += input[index]+","+input[index+1]+"`";
 				index+= 2; // this is to jump ahead after recombining the two columns.
 			}
 		}
-		
-		String[] returnArray = toResplit.split(" ");
+		System.out.println(toResplit);
+		String[] returnArray = toResplit.split("`");
+		System.out.println("test");
+		System.out.println(returnArray[2]);
+		System.out.println("test");
+		System.out.println(returnArray[4]);
+		System.out.println("test");
 		return returnArray;
 	}
 
 	private static void addToDB(String[] goodParse, Connection link) {
-		String insertInto = "INSERT INTO records VALUES(";
+		String insertInto = "INSERT INTO records VALUES('1','2','3','4','5','6','7','8','9','10');";
+		//System.out.println(insertInto);
+		/*
 		for(String item : goodParse) {
 			insertInto += item +",";
-		}
-		insertInto = insertInto.substring(0, insertInto.length()-1) + ")";
+		}*/
+		// above was a bad idea.
 		Statement insert = null;
 		try {
 			insert = link.createStatement();
@@ -140,22 +150,27 @@ public class csvparser {
 		
 		return database;
 	}
-	private static void createTable(String[] inputArray, String dbName, Connection link) {
-		String tableCreateStat = "CREATE TABLE records (";
+	private static void createTable( Connection link) {
+		
 		//String tableCreateStat = "CREATE TABLE records";
 		//the table inside the database will be named records.
 		//Connection link = database.getConnection()
+		/*
 		for(String item : inputArray) {
 			if(item == "E") {
 				tableCreateStat += " " + item + " MEDIUMTEXT NOT NULL,";
 				// this would be that giant link column.
+			}else if(item == "C") {
+				tableCreateStat += " " + item + "VARCHAR(255)";
 			}else {
 				tableCreateStat += " " + item + " TINYTEXT NOT NULL,";
 				// In theory everything else should fit into the TINYTEXT size limit?
 				// Trying to not take up more space than need be, but don't know what the true size limits are.
 			}
-		}
-		tableCreateStat = tableCreateStat.substring(0, tableCreateStat.length()-1) +")";
+		}*/
+		
+		String tableCreateStat = "CREATE TABLE records (A TEXT, B TEXT, C TEXT, D TEXT, E TEXT, F TEXT, G TEXT, H TEXT, I TEXT, J TEXT)";
+		//tableCreateStat = tableCreateStat.substring(0, tableCreateStat.length()-1) +")";
 		Statement createTable = null;
 		try {
 			createTable = link.createStatement();
@@ -205,7 +220,7 @@ public class csvparser {
 			Connection link = database.getConnection();
 			System.out.println("Test");
 			System.out.println(link);
-			createTable(Splits, fileName.replace(".csv",".db"), link);
+			createTable(link);
 			
 			line = parser.readLine(); // this skips the a,b,c,d titles. Probably a better way of doing
 			//that. Look back on it later.
@@ -216,7 +231,8 @@ public class csvparser {
 				//for(String split : Splits) System.out.println(split);
 				
 				if(lengthTest(Splits)) { //This test will determine what is going to the database, and what is going to the bad.CSV file.
-					Splits = fixParse(Splits);
+					System.out.println(line);
+					//Splits = fixParse(Splits);
 					returnList.add(Splits);
 					TotalRecsSuccess++;
 					addToDB(Splits, link);
