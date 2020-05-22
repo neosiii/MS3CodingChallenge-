@@ -1,5 +1,11 @@
 import java.io.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
+
+import org.sqlite.*;
+
 
 public class csvparser {
 
@@ -35,10 +41,12 @@ public class csvparser {
 		System.out.println("Simulation completed! Have a nice day!");
 		
 	}
-	
+	/*
 	private static void addToCSV(String[] badParse, String fileName) {
-		
-	}
+		//determined this was unneeded.
+	}*/
+	
+	
 	private static void addToDB(String[] goodParse, String dbName) {
 		
 	}
@@ -59,8 +67,46 @@ public class csvparser {
 			System.out.println("line not read");
 		}
 	}
+	
+	private static SQLiteDataSource createDB(String fileName) {
+		fileName = fileName.replace(".csv",".db");
+		System.out.println(fileName);
+		//This print out is just to ensure that file name is correctly switched.
+		SQLiteDataSource database = new SQLiteDataSource();
+		database.setUrl("jdbc::sqlite:"+fileName);
+		return database;
+	}
+	private static void createTable(String[] inputArray, String dbName, Connection link) {
+		String tableCreateStat = "create table "+ dbName + ".records";
+		//the table inside the database will be named records.
+		//Connection link = database.getConnection()
+		for(String item : inputArray) {
+			if(item == "E") {
+				tableCreateStat += " " + item + " MEDIUMTEXT NOT NULL,";
+				// this would be that giant link column.
+			}else {
+				tableCreateStat += " " + item + " TINYTEXT NOT NULL,";
+				// In theory everything else should fit into the TINYTEXT size limit?
+				// Trying to not take up more space than need be, but don't know what the true size limits are.
+			}
+		}
+		tableCreateStat = tableCreateStat.substring(0, tableCreateStat.length()-1);
+		Statement createTable = null;
+		try {
+			createTable = link.createStatement();
+			createTable.executeUpdate(tableCreateStat);
+			createTable.close();
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}
+		System.out.println(tableCreateStat);
+	}
 	public static ArrayList<String[]> parser(String fileName){
 		ArrayList<String[]> returnList = new ArrayList<String[]>();
+		
+		SQLiteDataSource database = createDB(fileName);
+
+		System.out.println(database.getUrl());
 		
 		
 		File badParses = new File(fileName.replace(".csv", "")+"-bad.csv");
@@ -81,12 +127,16 @@ public class csvparser {
 			//System.out.println(badParses.getName());
 			BufferedReader parser = new BufferedReader(new FileReader(fileName));
 			String line = parser.readLine();
+			String[] Splits = line.split(",");
+			Connection link = database.getConnection();
+			createTable(Splits, fileName.replace(".csv",".db"), link);
+			
 			line = parser.readLine(); // this skips the a,b,c,d titles. Probably a better way of doing
 			//that. Look back on it later.
 			
 			
 			while(line != null) {
-				String[] Splits = line.split(",");
+				Splits = line.split(",");
 				//for(String split : Splits) System.out.println(split);
 				
 				if(lengthTest(Splits)) { //This test will determine what is going to the database, and what is going to the bad.CSV file.
@@ -106,6 +156,8 @@ public class csvparser {
 		}catch(FileNotFoundException e) {
 			e.printStackTrace();
 		}catch(IOException e) {
+			e.printStackTrace();
+		}catch(SQLException e) {
 			e.printStackTrace();
 		}
 		
