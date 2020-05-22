@@ -1,6 +1,7 @@
 import java.io.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -50,15 +51,26 @@ public class csvparser {
 	}*/
 	
 	private static void readDB(Connection link) {
-		String query = "SELECT A FROM records";
+		String query = "SELECT * FROM records";
 		Statement printTable = null;
+		int index = 1;
 		try {
 			printTable = link.createStatement();
 			ResultSet records = printTable.executeQuery(query);
 			
 			while(records.next()) {
-				//String toPrint = records.getString("A");
-				System.out.println(records);
+				String toPrint = records.getString("A");
+				toPrint += ", " + records.getString("B");
+				toPrint += ", " + records.getString("C");
+				toPrint += ", " + records.getString("D");
+				toPrint += ", " + records.getString("E");
+				toPrint += ", " + records.getString("F");
+				toPrint += ", " + records.getString("G");
+				toPrint += ", " + records.getString("H");
+				toPrint += ", " + records.getString("I");
+				toPrint += ", " + records.getString("J");
+				System.out.println(index + " : " + toPrint);
+				index++;
 			}
 			printTable.close();
 			
@@ -70,8 +82,8 @@ public class csvparser {
 	private static String[] fixParse(String[] input) {
 		String toResplit = "";
 		int index = 0;
-		System.out.println(input[4]);
-		System.out.println(input[5]);
+		//System.out.println(input[4]);
+		//System.out.println(input[5]);
 		while(index < input.length) {
 			if(index != 4) {
 				toResplit += input[index] + "`";
@@ -82,28 +94,38 @@ public class csvparser {
 				index+= 2; // this is to jump ahead after recombining the two columns.
 			}
 		}
-		System.out.println(toResplit);
+		//System.out.println(toResplit);
 		String[] returnArray = toResplit.split("`");
-		System.out.println("test");
-		System.out.println(returnArray[2]);
-		System.out.println("test");
-		System.out.println(returnArray[4]);
-		System.out.println("test");
+		//System.out.println("test");
+		//System.out.println(returnArray[2]);
+		//System.out.println("test");
+		//System.out.println(returnArray[4]);
+		//System.out.println("test");
 		return returnArray;
 	}
 
 	private static void addToDB(String[] goodParse, Connection link) {
-		String insertInto = "INSERT INTO records VALUES('1','2','3','4','5','6','7','8','9','10');";
+		String insertInto = "INSERT INTO records VALUES(?,?,?,?,?,?,?,?,?,?)";
 		//System.out.println(insertInto);
 		/*
 		for(String item : goodParse) {
 			insertInto += item +",";
 		}*/
 		// above was a bad idea.
-		Statement insert = null;
+		
 		try {
-			insert = link.createStatement();
-			insert.executeUpdate(insertInto);
+			PreparedStatement insert = link.prepareStatement(insertInto);
+			insert.setString(1, goodParse[0]);
+			insert.setString(2, goodParse[1]);
+			insert.setString(3, goodParse[2]);
+			insert.setString(4, goodParse[3]);
+			insert.setString(5, goodParse[4]);
+			insert.setString(6, goodParse[5]);
+			insert.setString(7, goodParse[6]);
+			insert.setString(8, goodParse[7]);
+			insert.setString(9, goodParse[8]);
+			insert.setString(10, goodParse[9]);
+			insert.executeUpdate();
 			insert.close();
 		}catch(SQLException e) {
 			e.printStackTrace();
@@ -114,7 +136,7 @@ public class csvparser {
 			BufferedReader badparser = new BufferedReader(new FileReader("Entry Level Coding Challenge Page 2-bad.csv"));
 			String line = badparser.readLine();
 			while(line != null) {
-				System.out.println(line);
+				//System.out.println(line);
 				line = badparser.readLine();
 			}
 			badparser.close();
@@ -129,18 +151,18 @@ public class csvparser {
 	
 	private static SQLiteDataSource createDB(String fileName){
 		fileName = fileName.replace(".csv",".db");
-		System.out.println(fileName);
+		//System.out.println(fileName);
 		//This print out is just to ensure that file name is correctly switched.
 		SQLiteDataSource database = new SQLiteDataSource();
-		System.out.println(database.getUrl());
+		//System.out.println(database.getUrl());
 		database.setUrl("jdbc:sqlite::memory:");
 		// only way I can get it to store in memory is without an actual file name.
 
-		System.out.println(database.getUrl());
+		//System.out.println(database.getUrl());
 		Connection link = null;
 		try {
 			link = database.getConnection();
-			System.out.println(link);
+			//System.out.println(link);
 			
 		}catch(SQLException e){
 			e.printStackTrace();
@@ -187,7 +209,7 @@ public class csvparser {
 				}
 			}
 		}
-		System.out.println(tableCreateStat);
+		//System.out.println(tableCreateStat);
 	}
 	public static ArrayList<String[]> parser(String fileName){
 		ArrayList<String[]> returnList = new ArrayList<String[]>();
@@ -195,7 +217,7 @@ public class csvparser {
 		SQLiteDataSource database = createDB(fileName);
 		
 
-		System.out.println(database.getUrl());
+		//System.out.println(database.getUrl());
 		
 		
 		File badParses = new File(fileName.replace(".csv", "-bad.csv"));
@@ -215,11 +237,14 @@ public class csvparser {
 			FileWriter badParseWrite = new FileWriter(fileName.replace(".csv", "-bad.csv"));
 			//System.out.println(badParses.getName());
 			BufferedReader parser = new BufferedReader(new FileReader(fileName));
+			//System.out.println(parser.)
 			String line = parser.readLine();
+			//System.out.println(line);
+			
 			String[] Splits = line.split(",");
 			Connection link = database.getConnection();
-			System.out.println("Test");
-			System.out.println(link);
+			//System.out.println("Test");
+			//System.out.println(link);
 			createTable(link);
 			
 			line = parser.readLine(); // this skips the a,b,c,d titles. Probably a better way of doing
@@ -227,12 +252,13 @@ public class csvparser {
 			
 			
 			while(line != null) {
+				
 				Splits = line.split(",");
 				//for(String split : Splits) System.out.println(split);
 				
-				if(lengthTest(Splits)) { //This test will determine what is going to the database, and what is going to the bad.CSV file.
-					System.out.println(line);
-					//Splits = fixParse(Splits);
+				if(lengthTest(Splits) == true) { //This test will determine what is going to the database, and what is going to the bad.CSV file.
+					//System.out.println(line);
+					Splits = fixParse(Splits);
 					returnList.add(Splits);
 					TotalRecsSuccess++;
 					addToDB(Splits, link);
@@ -247,7 +273,7 @@ public class csvparser {
 			}
 			parser.close();
 			badParseWrite.close();
-			//readDB(link);
+			readDB(link);
 		}catch(FileNotFoundException e) {
 			e.printStackTrace();
 		}catch(IOException e) {
@@ -273,7 +299,7 @@ public class csvparser {
 	//Using the below function for sorting what goes to array and what goes to the bad.csv.
 	public static boolean lengthTest(String[] input) {
 		for(String element : input) {
-			if(element.length() < 1) {
+			if(element.length() < 2) {
 				return false;
 			}
 		}
