@@ -1,5 +1,6 @@
 import java.io.*;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
@@ -68,16 +69,30 @@ public class csvparser {
 		}
 	}
 	
-	private static SQLiteDataSource createDB(String fileName) {
+	private static SQLiteDataSource createDB(String fileName){
 		fileName = fileName.replace(".csv",".db");
 		System.out.println(fileName);
 		//This print out is just to ensure that file name is correctly switched.
 		SQLiteDataSource database = new SQLiteDataSource();
-		database.setUrl("jdbc::sqlite:"+fileName);
+		System.out.println(database.getUrl());
+		database.setUrl("jdbc:sqlite:"+fileName);
+		System.out.println(database.getUrl());
+		Connection link = null;
+		try {
+			link = database.getConnection();
+			System.out.println(link);
+			
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		//System.out.println(link);
+		
+		
 		return database;
 	}
 	private static void createTable(String[] inputArray, String dbName, Connection link) {
-		String tableCreateStat = "create table "+ dbName + ".records";
+		String tableCreateStat = "CREATE TABLE records (";
+		//String tableCreateStat = "CREATE TABLE records";
 		//the table inside the database will be named records.
 		//Connection link = database.getConnection()
 		for(String item : inputArray) {
@@ -90,14 +105,22 @@ public class csvparser {
 				// Trying to not take up more space than need be, but don't know what the true size limits are.
 			}
 		}
-		tableCreateStat = tableCreateStat.substring(0, tableCreateStat.length()-1);
+		tableCreateStat = tableCreateStat.substring(0, tableCreateStat.length()-1) +")";
 		Statement createTable = null;
 		try {
 			createTable = link.createStatement();
 			createTable.executeUpdate(tableCreateStat);
-			createTable.close();
+			//createTable.close();
 		}catch (SQLException e) {
 			e.printStackTrace();
+		}finally {
+			if (createTable != null) {
+				try{
+					createTable.close();
+				}catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 		System.out.println(tableCreateStat);
 	}
@@ -109,7 +132,7 @@ public class csvparser {
 		System.out.println(database.getUrl());
 		
 		
-		File badParses = new File(fileName.replace(".csv", "")+"-bad.csv");
+		File badParses = new File(fileName.replace(".csv", "-bad.csv"));
 		try {
 			badParses.createNewFile();
 		}catch(IOException e) {
@@ -123,12 +146,14 @@ public class csvparser {
 		int TotalRecsfailed = 0;
 		
 		try {
-			FileWriter badParseWrite = new FileWriter(fileName.replace(".csv", "")+"-bad.csv");
+			FileWriter badParseWrite = new FileWriter(fileName.replace(".csv", "-bad.csv"));
 			//System.out.println(badParses.getName());
 			BufferedReader parser = new BufferedReader(new FileReader(fileName));
 			String line = parser.readLine();
 			String[] Splits = line.split(",");
 			Connection link = database.getConnection();
+			System.out.println("Test");
+			System.out.println(link);
 			createTable(Splits, fileName.replace(".csv",".db"), link);
 			
 			line = parser.readLine(); // this skips the a,b,c,d titles. Probably a better way of doing
