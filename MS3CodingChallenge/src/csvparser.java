@@ -1,6 +1,7 @@
 import java.io.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
@@ -41,15 +42,62 @@ public class csvparser {
 		// above function works.
 		System.out.println("Simulation completed! Have a nice day!");
 		
+		
 	}
 	/*
 	private static void addToCSV(String[] badParse, String fileName) {
 		//determined this was unneeded.
 	}*/
 	
+	private static void readDB(Connection link) {
+		String query = "SELECT A FROM records";
+		Statement printTable = null;
+		try {
+			printTable = link.createStatement();
+			ResultSet records = printTable.executeQuery(query);
+			
+			while(records.next()) {
+				//String toPrint = records.getString("A");
+				System.out.println(records);
+			}
+			printTable.close();
+			
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 	
-	private static void addToDB(String[] goodParse, String dbName) {
+	private static String[] fixParse(String[] input) {
+		String toResplit = "";
+		int index = 0;
+		while(index < input.length) {
+			if(index != 4) {
+				toResplit += input[index] + " ";
+			}else {
+				//this is to fix column e where spliting by command messes the program up.
+				toResplit += input[index]+","+input[index+1]+" ";
+				index+= 2; // this is to jump ahead after recombining the two columns.
+			}
+		}
 		
+		String[] returnArray = toResplit.split(" ");
+		return returnArray;
+	}
+
+	private static void addToDB(String[] goodParse, Connection link) {
+		String insertInto = "INSERT INTO records VALUES(";
+		for(String item : goodParse) {
+			insertInto += item +",";
+		}
+		insertInto = insertInto.substring(0, insertInto.length()-1) + ")";
+		Statement insert = null;
+		try {
+			insert = link.createStatement();
+			insert.executeUpdate(insertInto);
+			insert.close();
+		}catch(SQLException e) {
+			e.printStackTrace();
+		}
 	}
 	private static void readingBadparse(String fileName) {
 		try {
@@ -59,7 +107,7 @@ public class csvparser {
 				System.out.println(line);
 				line = badparser.readLine();
 			}
-			
+			badparser.close();
 		}catch(FileNotFoundException e){
 			e.printStackTrace();
 			System.out.println("File not found");
@@ -75,7 +123,9 @@ public class csvparser {
 		//This print out is just to ensure that file name is correctly switched.
 		SQLiteDataSource database = new SQLiteDataSource();
 		System.out.println(database.getUrl());
-		database.setUrl("jdbc:sqlite:"+fileName);
+		database.setUrl("jdbc:sqlite::memory:");
+		// only way I can get it to store in memory is without an actual file name.
+
 		System.out.println(database.getUrl());
 		Connection link = null;
 		try {
@@ -110,7 +160,7 @@ public class csvparser {
 		try {
 			createTable = link.createStatement();
 			createTable.executeUpdate(tableCreateStat);
-			//createTable.close();
+			createTable.close();
 		}catch (SQLException e) {
 			e.printStackTrace();
 		}finally {
@@ -128,6 +178,7 @@ public class csvparser {
 		ArrayList<String[]> returnList = new ArrayList<String[]>();
 		
 		SQLiteDataSource database = createDB(fileName);
+		
 
 		System.out.println(database.getUrl());
 		
@@ -165,8 +216,10 @@ public class csvparser {
 				//for(String split : Splits) System.out.println(split);
 				
 				if(lengthTest(Splits)) { //This test will determine what is going to the database, and what is going to the bad.CSV file.
+					Splits = fixParse(Splits);
 					returnList.add(Splits);
 					TotalRecsSuccess++;
+					addToDB(Splits, link);
 					//System.out.println("True");
 				}else {
 					TotalRecsfailed++;
@@ -178,6 +231,7 @@ public class csvparser {
 			}
 			parser.close();
 			badParseWrite.close();
+			//readDB(link);
 		}catch(FileNotFoundException e) {
 			e.printStackTrace();
 		}catch(IOException e) {
@@ -195,6 +249,7 @@ public class csvparser {
 
 		String[] _totals = {String.valueOf(TotalRecsSuccess), String.valueOf(TotalRecsfailed)};
 		returnList.add(_totals);
+		
 		
 		return returnList;
 		
