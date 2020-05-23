@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="windows-1252" standalone="no"?>
+<!DOCTYPE log SYSTEM "logger.dtd">
+<log>
+<record>
+  <date>2020-05-22T21:37:21</date>
+  <millis>1590197841088</millis>
+  <sequence>0</sequence>
+  <logger>RecordsLog</logger>
+  <level>INFO</level>
+  <class>csvparser</class>
+  <method>logRecords</method>
+  <thread>1</thread>
+  <message>Good Records Parsed: 4869</message>
+</record>
+<record>
+  <date>2020-05-22T21:37:21</date>
+  <millis>1590197841090</millis>
+  <sequence>1</sequence>
+  <logger>RecordsLog</logger>
+  <level>INFO</level>
+  <class>csvparser</class>
+  <method>logRecords</method>
+  <thread>1</thread>
+  <message>Bad Records Parsed: 1133</message>
+</record>
+<record>
+  <date>2020-05-22T21:37:21</date>
+  <millis>1590197841091</millis>
+  <sequence>2</sequence>
+  <logger>RecordsLog</logger>
+  <level>INFO</level>
+  <class>csvparser</class>
+  <method>logRecords</method>
+  <thread>1</thread>
+  <message>Total Records Parsed: 6002</message>
+</record>
+<?xml version="1.0" encoding="windows-1252" standalone="no"?>
+<!DOCTYPE log SYSTEM "logger.dtd">
+<log>
+<record>
+  <date>2020-05-22T21:38:34</date>
+  <millis>1590197914937</millis>
+  <sequence>0</sequence>
+  <logger>RecordsLog</logger>
+  <level>INFO</level>
+  <class>csvparser</class>
+  <method>logRecords</method>
+  <thread>1</thread>
+  <message>Good Records Parsed: 4869</message>
+</record>
+<record>
+  <date>2020-05-22T21:38:34</date>
+  <millis>1590197914940</millis>
+  <sequence>1</sequence>
+  <logger>RecordsLog</logger>
+  <level>INFO</level>
+  <class>csvparser</class>
+  <method>logRecords</method>
+  <thread>1</thread>
+  <message>Bad Records Parsed: 1133</message>
+</record>
+<record>
+  <date>2020-05-22T21:38:34</date>
+  <millis>1590197914940</millis>
+  <sequence>2</sequence>
+  <logger>RecordsLog</logger>
+  <level>INFO</level>
+  <class>csvparser</class>
+  <method>logRecords</method>
+  <thread>1</thread>
+  <message>Total Records Parsed: 6002</message>
+</record>

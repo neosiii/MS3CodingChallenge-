@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
 
 import org.sqlite.*;
 
@@ -15,40 +17,37 @@ public class csvparser {
 
 	public static void main(String[] args) {
 		
-		ArrayList<String[]> parsed = parser("Entry Level Coding Challenge Page 2.csv");
-		/*
-		for(String[] parse : parsed) {
-			for(String element : parse) System.out.println(element);
-		}
-		*/
-		/*
-		int index = 0;
-		while(index < 5) {
-			if(lengthTest(parsed.get(index))) {
-				System.out.println(parsed.get(index).length);
-				System.out.println("True");
-			}
-			index++;
-		}
-		*/
-		int totalRecs = 0;
-		for(String total : parsed.get(parsed.size()-1)) {
-			System.out.println(total);
-			totalRecs += Integer.parseInt(total);
-		}
-		System.out.println("Total recs: " + totalRecs);
-		//System.out.println(parsed.get(parsed.size()-1));
+		Scanner input = new Scanner(System.in);
+		System.out.println("Please enter in the file name for the csv file.\nIncluding the .csv");
+		String fileName = input.nextLine();
+		//gets the file name that the program will utilize for the rest of its execution.
+		System.out.println(fileName);
+		Connection dataLink = parser(fileName);
+	
+		int loopIndex = 1;
 		
-		//readingBadparse("Entry Level Coding Challenge Page 2-bad.csv");
-		// above function works.
+		while(loopIndex == 1) {
+			System.out.println("Would you like to print:\n1: Database\n2: bad.csv\n3: Exit");
+			int option = input.nextInt();
+			switch(option) {
+			case 1:
+				readDB(dataLink); //reads database created on run.
+				break;
+			case 2:
+				readingBadparse("Entry Level Coding Challenge Page 2-bad.csv");
+				break;
+			case 3:
+				loopIndex++; //breaks you out of loop.
+				break;
+			default:
+				System.out.println("Invalid input please try again.");
+			}
+		}
+
 		System.out.println("Simulation completed! Have a nice day!");
 		
 		
 	}
-	/*
-	private static void addToCSV(String[] badParse, String fileName) {
-		//determined this was unneeded.
-	}*/
 	
 	private static void readDB(Connection link) {
 		String query = "SELECT * FROM records";
@@ -82,8 +81,6 @@ public class csvparser {
 	private static String[] fixParse(String[] input) {
 		String toResplit = "";
 		int index = 0;
-		//System.out.println(input[4]);
-		//System.out.println(input[5]);
 		while(index < input.length) {
 			if(index != 4) {
 				toResplit += input[index] + "`";
@@ -94,24 +91,12 @@ public class csvparser {
 				index+= 2; // this is to jump ahead after recombining the two columns.
 			}
 		}
-		//System.out.println(toResplit);
 		String[] returnArray = toResplit.split("`");
-		//System.out.println("test");
-		//System.out.println(returnArray[2]);
-		//System.out.println("test");
-		//System.out.println(returnArray[4]);
-		//System.out.println("test");
 		return returnArray;
 	}
 
 	private static void addToDB(String[] goodParse, Connection link) {
 		String insertInto = "INSERT INTO records VALUES(?,?,?,?,?,?,?,?,?,?)";
-		//System.out.println(insertInto);
-		/*
-		for(String item : goodParse) {
-			insertInto += item +",";
-		}*/
-		// above was a bad idea.
 		
 		try {
 			PreparedStatement insert = link.prepareStatement(insertInto);
@@ -133,10 +118,10 @@ public class csvparser {
 	}
 	private static void readingBadparse(String fileName) {
 		try {
-			BufferedReader badparser = new BufferedReader(new FileReader("Entry Level Coding Challenge Page 2-bad.csv"));
+			BufferedReader badparser = new BufferedReader(new FileReader(fileName));
 			String line = badparser.readLine();
 			while(line != null) {
-				//System.out.println(line);
+				System.out.println(line);
 				line = badparser.readLine();
 			}
 			badparser.close();
@@ -151,48 +136,30 @@ public class csvparser {
 	
 	private static SQLiteDataSource createDB(String fileName){
 		fileName = fileName.replace(".csv",".db");
-		//System.out.println(fileName);
-		//This print out is just to ensure that file name is correctly switched.
 		SQLiteDataSource database = new SQLiteDataSource();
-		//System.out.println(database.getUrl());
 		database.setUrl("jdbc:sqlite::memory:");
 		// only way I can get it to store in memory is without an actual file name.
+		//database.setUrl("jdbc:sqlite:"+fileName);
+		//comment above should work if you wish to have the file name.
+		//But that will make it a file within the program.
+		//Which after communicating with recruiter, wasn't the intended purpose.
 
-		//System.out.println(database.getUrl());
 		Connection link = null;
 		try {
 			link = database.getConnection();
-			//System.out.println(link);
 			
 		}catch(SQLException e){
 			e.printStackTrace();
 		}
-		//System.out.println(link);
 		
 		
 		return database;
 	}
 	private static void createTable( Connection link) {
 		
-		//String tableCreateStat = "CREATE TABLE records";
-		//the table inside the database will be named records.
-		//Connection link = database.getConnection()
-		/*
-		for(String item : inputArray) {
-			if(item == "E") {
-				tableCreateStat += " " + item + " MEDIUMTEXT NOT NULL,";
-				// this would be that giant link column.
-			}else if(item == "C") {
-				tableCreateStat += " " + item + "VARCHAR(255)";
-			}else {
-				tableCreateStat += " " + item + " TINYTEXT NOT NULL,";
-				// In theory everything else should fit into the TINYTEXT size limit?
-				// Trying to not take up more space than need be, but don't know what the true size limits are.
-			}
-		}*/
 		
 		String tableCreateStat = "CREATE TABLE records (A TEXT, B TEXT, C TEXT, D TEXT, E TEXT, F TEXT, G TEXT, H TEXT, I TEXT, J TEXT)";
-		//tableCreateStat = tableCreateStat.substring(0, tableCreateStat.length()-1) +")";
+		
 		Statement createTable = null;
 		try {
 			createTable = link.createStatement();
@@ -209,15 +176,10 @@ public class csvparser {
 				}
 			}
 		}
-		//System.out.println(tableCreateStat);
 	}
-	public static ArrayList<String[]> parser(String fileName){
-		ArrayList<String[]> returnList = new ArrayList<String[]>();
+	public static Connection parser(String fileName){
 		
 		SQLiteDataSource database = createDB(fileName);
-		
-
-		//System.out.println(database.getUrl());
 		
 		
 		File badParses = new File(fileName.replace(".csv", "-bad.csv"));
@@ -226,54 +188,51 @@ public class csvparser {
 		}catch(IOException e) {
 			e.printStackTrace();
 		}
-		// Probably could do this with out File badParses, test for later. Currently playing safe.
 		
 		
 		
 		int TotalRecsSuccess = 0;
 		int TotalRecsfailed = 0;
-		
+		Connection link = null;
 		try {
 			FileWriter badParseWrite = new FileWriter(fileName.replace(".csv", "-bad.csv"));
-			//System.out.println(badParses.getName());
+
 			BufferedReader parser = new BufferedReader(new FileReader(fileName));
-			//System.out.println(parser.)
+
 			String line = parser.readLine();
-			//System.out.println(line);
+
 			
 			String[] Splits = line.split(",");
-			Connection link = database.getConnection();
-			//System.out.println("Test");
-			//System.out.println(link);
+			link = database.getConnection();
+
 			createTable(link);
 			
-			line = parser.readLine(); // this skips the a,b,c,d titles. Probably a better way of doing
-			//that. Look back on it later.
+			line = parser.readLine(); // this skips the a,b,c,d titles. In Theory.
 			
 			
 			while(line != null) {
 				
 				Splits = line.split(",");
-				//for(String split : Splits) System.out.println(split);
+
 				
 				if(lengthTest(Splits) == true) { //This test will determine what is going to the database, and what is going to the bad.CSV file.
-					//System.out.println(line);
+
 					Splits = fixParse(Splits);
-					returnList.add(Splits);
+
 					TotalRecsSuccess++;
 					addToDB(Splits, link);
-					//System.out.println("True");
+
 				}else {
 					TotalRecsfailed++;
 					badParseWrite.write(line+"\n"); //So just taking one CSV line and throwing it back into a new CSV. At least that's the idea.
-					//System.out.println("False");
+
 				}
 				line = parser.readLine();
-				//test
+
 			}
 			parser.close();
 			badParseWrite.close();
-			readDB(link);
+
 		}catch(FileNotFoundException e) {
 			e.printStackTrace();
 		}catch(IOException e) {
@@ -281,19 +240,17 @@ public class csvparser {
 		}catch(SQLException e) {
 			e.printStackTrace();
 		}
-		
-		
-		//returnList.add({String.valueOf(TotalRecsSuccess), String.valueOf(TotalRecsfailed)});
-		/* Apparently That doesn't work atm. Look into.
-		If it stays in here, it's to show original thought process. Would prefer to
-		not have to declare another variable.*/
+		logRecords(TotalRecsSuccess, TotalRecsfailed++);
+		//Success go first, failures go second.
+
 		
 
 		String[] _totals = {String.valueOf(TotalRecsSuccess), String.valueOf(TotalRecsfailed)};
-		returnList.add(_totals);
+
 		
 		
-		return returnList;
+
+		return link;
 		
 	}
 	//Using the below function for sorting what goes to array and what goes to the bad.csv.
@@ -306,6 +263,24 @@ public class csvparser {
 		return true;
 		// should only return if every element in input is of a length greater than 0.
 		// This will find all lines that don't have the proper number of elements.
+	}
+	private static void logRecords(int goodRecords, int badRecords) {
+		FileHandler logFile;
+		try {
+			logFile = new FileHandler("Records.log", true);
+			Logger librarian = Logger.getLogger("RecordsLog");
+			librarian.addHandler(logFile);
+			
+			librarian.info("Good Records Parsed: " + goodRecords);
+			librarian.info("Bad Records Parsed: "+ badRecords);
+			int TotalRecords = goodRecords + badRecords;
+			librarian.info("Total Records Parsed: " + TotalRecords);
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 }
 
